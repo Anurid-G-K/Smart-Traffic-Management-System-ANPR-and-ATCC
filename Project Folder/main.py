@@ -3,8 +3,8 @@ import cv2
 import numpy as np
 import streamlit as st
 from sort.sort import *
-import util
-from util import get_car, read_license_plate, write_csv
+import utilities
+from utilities import get_car, read_license_plate, write_csv
 import tempfile
 import os
 import pandas as pd
@@ -51,7 +51,6 @@ h1, h2, h3 {
     border: 2px solid #00ff99;
 }
 
-/* Video */
 img {
     width: 90%;
     height: 90%;
@@ -61,7 +60,6 @@ img {
     border-radius: 8px;
 }
 
-/* Table */
 .dataframe {
     width: 95%;
     margin-left: auto;
@@ -95,7 +93,7 @@ st.subheader("Upload a video to perform real-time vehicle detection & license pl
 # ---- Upload video ----
 uploaded_file = st.file_uploader("Upload video file", type=["mp4", "avi", "mov"])
 if uploaded_file is None:
-    st.warning("⚠️ Please upload a video to start detection")
+    st.warning("Please upload a video to start detection")
     st.stop()
 
 # ---- Save uploaded file temporarily ----
@@ -120,7 +118,7 @@ frame_placeholder = st.empty()
 progress_bar = st.progress(0)
 
 # ---- Vehicle log dictionary ----
-vehicle_log = {}  # car_id -> {license_number, license_number_score}
+vehicle_log = {}
 
 # ---- Output video ----
 output_path = os.path.join(os.getcwd(), "output.avi")
@@ -200,7 +198,7 @@ while ret:
             cv2.rectangle(frame, (text_x - 5, text_y - th - 5), (text_x + tw + 5, text_y + 5), (255, 255, 255), -1)
             cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 2)
 
-        # ---- Show live frame 90% size ----
+        # ---- Show live frame ----
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_placeholder.image(frame_rgb, channels="RGB")
 
@@ -227,12 +225,11 @@ df = pd.DataFrame([
         'license_number_score': v['license_number_score']
     } for k, v in vehicle_log.items()
 ])
-df.to_csv(csv_output, index=False)
-util.interpolate_and_write_csv(csv_output, './test_interpolated.csv')
+utilities.missing_data(csv_output, './test_interpolated.csv')
 
-st.success("✅ Vehicle detection and ANPR processing completed!")
+st.success("Vehicle detection and ANPR processing completed!")
 
-# ---- Display video slightly smaller ----
+# ---- Display video ----
 st.video(output_path)
 
 # ---- Display vehicle log table ----
